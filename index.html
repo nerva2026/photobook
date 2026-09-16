@@ -64,21 +64,6 @@
       max-width: 1500px;
     }
 
-    .toolbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-bottom: 8px;
-    }
-
-    .toolbar h2 {
-      color: #ffffff;
-      font-size: 1.05rem;
-      text-shadow: 0 1px 4px rgba(0,0,0,0.5);
-    }
-
     .btn-refresh {
       all: unset;
       cursor: pointer;
@@ -350,11 +335,6 @@
   </div>
 
   <div class="card">
-    <div class="toolbar">
-      <h2>&#128247; Fotos</h2>
-      <button class="btn-refresh" onclick="cargarFotos()">&#8635; Actualizar</button>
-    </div>
-
     <div class="demo-notice" id="demoNotice" style="display:none">
       Mostrando fotos de ejemplo. Configura <code>API_KEY</code> y <code>FOLDER_ID</code> en el
       &lt;script&gt; de fotos.html para ver tus fotos reales de Google Drive.
