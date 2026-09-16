@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Nerva</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {
+      min-height: 100%;
+      background-color: #000000;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      color: #f2f2f2;
+      min-height: 100vh;
+      padding: 16px;
+      padding-top: max(16px, env(safe-area-inset-top));
+      padding-bottom: max(16px, env(safe-area-inset-bottom));
+      padding-left: max(16px, env(safe-area-inset-left));
+      padding-right: max(16px, env(safe-area-inset-right));
+      position: relative;
+      background: #000000;
+    }
+
+    /* ── Header ── */
+    .header {
+      text-align: center;
+      margin-bottom: 14px;
+    }
+
+    .logo {
+      max-width: 150px;
+      width: 40%;
+      height: auto;
+      margin-bottom: 6px;
+    }
+
+    h1 {
+      font-size: 2.4rem;
+      color: #ffffff;
+      letter-spacing: 3px;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.6), 0 0 20px rgba(255,255,255,0.25);
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      color: #b0b0b0;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 640px) {
+      h1 { font-size: 1.7rem; letter-spacing: 1px; }
+    }
+
+    .card {
+      margin: 0 auto;
+      max-width: 1500px;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
+    .toolbar h2 {
+      color: #ffffff;
+      font-size: 1.05rem;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+    }
+
+    .btn-refresh {
+      all: unset;
+      cursor: pointer;
+      background: rgba(0,0,0,0.45);
+      border: 1px solid rgba(255,255,255,0.35);
+      border-radius: 8px;
+      color: #ffffff;
+      font-size: 0.85rem;
+      padding: 8px 16px;
+      transition: background 0.15s;
+    }
+    .btn-refresh:hover { background: rgba(255,255,255,0.15); }
+
+    .goto-form {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .goto-form input {
+      all: unset;
+      box-sizing: border-box;
+      width: 80px;
+      padding: 8px 10px;
+      background: rgba(0,0,0,0.45);
+      border: 1px solid rgba(255,255,255,0.35);
+      border-radius: 8px;
+      color: #ffffff;
+      font-size: 0.85rem;
+      text-align: center;
+    }
+    .goto-form input::placeholder { color: rgba(255,255,255,0.45); }
+
+    /* ── Aviso demo ── */
+    .demo-notice {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.4);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #ffffff;
+      font-size: 0.82rem;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    /* ── Estados ── */
+    .state-msg {
+      text-align: center;
+      padding: 40px 16px;
+      color: #b0b0b0;
+      font-size: 0.95rem;
+    }
+
+    .state-msg.error {
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    .spinner {
+      width: 28px;
+      height: 28px;
+      margin: 0 auto 14px;
+      border: 3px solid rgba(255,255,255,0.25);
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Carrusel ── */
+    .carousel {
+      max-width: 1500px;
+      margin: 0 auto;
+    }
+
+    /* El alto de .carousel-viewport lo calcula ajustarLayout() por JS,
+       en cualquier tamaño de pantalla, para que quepa todo sin
+       desplazar la página. */
+    .carousel-viewport {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      background: rgba(0,0,0,0.4);
+      border: 1px solid rgba(255,255,255,0.25);
+      touch-action: pan-y;
+    }
+
+    .carousel-track {
+      display: flex;
+      height: 100%;
+      transition: transform 0.45s ease;
+    }
+
+    .carousel-slide {
+      position: relative;
+      flex: 0 0 100%;
+      height: 100%;
+      cursor: pointer;
+      overflow: hidden;
+    }
+
+    .carousel-slide-bg {
+      position: absolute;
+      inset: -20px;
+      width: calc(100% + 40px);
+      height: calc(100% + 40px);
+      object-fit: cover;
+      filter: blur(20px) brightness(0.45);
+      transform: scale(1.15);
+    }
+
+    .carousel-slide-photo {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .carousel-caption {
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      padding: 14px 18px;
+      font-size: 0.85rem;
+      color: #f2f2f2;
+      background: linear-gradient(transparent, rgba(0,0,0,0.8));
+    }
+
+    .carousel-arrow {
+      all: unset;
+      cursor: pointer;
+      color: #ffffff;
+      font-size: 1.3rem;
+      padding: 8px 14px;
+      background: rgba(0,0,0,0.45);
+      border-radius: 8px;
+      transition: background 0.15s;
+    }
+    .carousel-arrow:hover { background: rgba(255,255,255,0.2); }
+
+    .carousel-actions {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .carousel-thumbs {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .carousel-thumb {
+      flex: 0 0 auto;
+      width: 70px;
+      height: 50px;
+      border-radius: 6px;
+      overflow: hidden;
+      cursor: pointer;
+      border: 2px solid transparent;
+      opacity: 0.6;
+      transition: opacity 0.15s, border-color 0.15s;
+    }
+    .carousel-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .carousel-thumb:hover { opacity: 0.9; }
+    .carousel-thumb.active {
+      opacity: 1;
+      border-color: #ffffff;
+    }
+
+    /* ── Lightbox ── */
+    .lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.9);
+      z-index: 100;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      padding: 24px;
+    }
+    .lightbox.open { display: flex; }
+
+    .lightbox img {
+      max-width: 100%;
+      max-height: 78vh;
+      border-radius: 10px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.7);
+      cursor: zoom-in;
+      transition: transform 0.2s ease;
+    }
+
+    .lightbox.zoomed {
+      overflow: auto;
+      align-items: flex-start;
+      justify-content: flex-start;
+    }
+    .lightbox.zoomed img {
+      max-width: none;
+      max-height: none;
+      width: auto;
+      height: auto;
+      cursor: zoom-out;
+    }
+
+    .lightbox-close {
+      all: unset;
+      cursor: pointer;
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      color: #ffffff;
+      font-size: 1.8rem;
+      padding: 10px 16px;
+      background: rgba(0,0,0,0.5);
+      border-radius: 8px;
+    }
+    .lightbox-close:hover { background: rgba(255,255,255,0.2); }
+
+    .lightbox-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+    }
+
+    .lightbox-nav {
+      all: unset;
+      cursor: pointer;
+      color: #ffffff;
+      font-size: 1.4rem;
+      padding: 8px 14px;
+      background: rgba(0,0,0,0.5);
+      border-radius: 8px;
+      transition: background 0.15s;
+    }
+    .lightbox-nav:hover { background: rgba(255,255,255,0.2); }
+
+    .lightbox-caption {
+      color: #ddd;
+      font-size: 0.85rem;
+    }
+
+    .lightbox-download {
+      all: unset;
+      cursor: pointer;
+      color: #ffffff;
+      font-size: 0.8rem;
+      padding: 6px 12px;
+      background: rgba(0,0,0,0.5);
+      border: 1px solid rgba(255,255,255,0.4);
+      border-radius: 8px;
+      transition: background 0.15s;
+    }
+    .lightbox-download:hover { background: rgba(255,255,255,0.2); }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <img class="logo" src="logo.png" alt="Nerva" />
+    <p class="subtitle">Galería de fotos</p>
+  </div>
+
+  <div class="card">
+    <div class="toolbar">
+      <h2>&#128247; Fotos</h2>
+      <div class="goto-form">
+        <input type="number" id="gotoInput" min="1" placeholder="Nº foto" onkeydown="if (event.key === 'Enter') irAFotoInput()" />
+        <button class="btn-refresh" onclick="irAFotoInput()">Ir</button>
+      </div>
+      <button class="btn-refresh" onclick="cargarFotos()">&#8635; Actualizar</button>
+    </div>
+
+    <div class="demo-notice" id="demoNotice" style="display:none">
+      Mostrando fotos de ejemplo. Configura <code>API_KEY</code> y <code>FOLDER_ID</code> en el
+      &lt;script&gt; de fotos.html para ver tus fotos reales de Google Drive.
+    </div>
+
+    <div id="galleryContainer">
+      <div class="state-msg" id="stateMsg">
+        <div class="spinner"></div>
+        Cargando fotos...
+      </div>
+
+      <div class="carousel" id="carousel" style="display:none">
+        <div class="carousel-viewport">
+          <div class="carousel-track" id="carouselTrack"></div>
+          <div class="carousel-caption" id="carouselCaption"></div>
+        </div>
+        <div class="carousel-actions">
+          <button class="carousel-arrow prev" onclick="moverCarrusel(-1)">&#8592;</button>
+          <a class="btn-refresh" id="carouselDownload" href="#" download target="_blank" title="Descargar esta foto">&#8681; Descargar esta foto</a>
+          <button class="carousel-arrow next" onclick="moverCarrusel(1)">&#8594;</button>
+        </div>
+        <div class="carousel-thumbs" id="carouselThumbs"></div>
+        <div class="carousel-actions">
+          <button class="btn-refresh" id="btnDescargarTodas" onclick="descargarTodas()">&#8681; Descargar todas (ZIP)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="lightbox" id="lightbox">
+    <button class="lightbox-close" onclick="cerrarLightbox()">&times;</button>
+    <img id="lightboxImg" alt="" onclick="toggleZoom()" />
+    <div class="lightbox-actions">
+      <button class="lightbox-nav" onclick="moverLightbox(-1)">&#8592;</button>
+      <span class="lightbox-caption" id="lightboxCaption"></span>
+      <a class="lightbox-download" id="lightboxDownload" href="#" download target="_blank" title="Descargar foto">&#8681; Descargar</a>
+      <button class="lightbox-nav" onclick="moverLightbox(1)">&#8594;</button>
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script>
+  // ── Configuración ──────────────────────────────────────────────────────
+  // 1. Crea una API key en https://console.cloud.google.com/apis/credentials
+  //    (habilita "Google Drive API" en el proyecto) y restríngela a ese dominio.
+  // 2. Comparte la carpeta de Drive como "Cualquier usuario con el enlace: Lector"
+  //    y copia su ID (el trozo de la URL tras /folders/).
+  const CONFIG = {
+    API_KEY: 'AIzaSyAU8d1zLONrS_UwWTLVv94-oEtCq3fic_M',
+    FOLDER_ID: '1jarXe49FaY8ZwVg_CTopcQ_HChBJ49wW',
+  };
+
+  // Fotos de ejemplo que se muestran mientras CONFIG no esté rellenado.
+  const FOTOS_DEMO = [
+    { name: 'Barra libre', seed: 'vegas-bar' },
+    { name: 'Mesa de cartas', seed: 'vegas-cards' },
+    { name: 'Foto vertical (ejemplo)', seed: 'vegas-vertical', portrait: true },
+    { name: 'Pista de baile', seed: 'vegas-dance' },
+    { name: 'Photocall', seed: 'vegas-photo' },
+    { name: 'Fuegos artificiales', seed: 'vegas-fireworks' },
+  ].map(f => ({
+    name: f.name,
+    thumb: f.portrait
+      ? `https://picsum.photos/seed/${f.seed}/200/300`
+      : `https://picsum.photos/seed/${f.seed}/300/200`,
+    full: f.portrait
+      ? `https://picsum.photos/seed/${f.seed}/800/1200`
+      : `https://picsum.photos/seed/${f.seed}/1200/800`,
+  }));
+
+  const THUMBS_POR_PAGINA = 10;
+
+  let fotos = [];
+  let carouselIndex = 0;
+  let lightboxIndex = 0;
+  let huboDeslizamiento = false;
+  let thumbWindowStart = 0;
+
+  // ── Recordar la foto actual entre recargas (localStorage) ──────────────
+  function claveGuardado() {
+    return `nerva_foto_actual_${CONFIG.FOLDER_ID}`;
+  }
+
+  function guardarIndiceActual() {
+    try {
+      localStorage.setItem(claveGuardado(), String(carouselIndex));
+    } catch (err) { /* localStorage no disponible: sin memoria entre recargas */ }
+  }
+
+  function leerIndiceGuardado() {
+    try {
+      const valor = parseInt(localStorage.getItem(claveGuardado()), 10);
+      return Number.isFinite(valor) ? valor : 0;
+    } catch (err) {
+      return 0;
+    }
+  }
+
+  function urlOriginal(id) {
+    return `https://www.googleapis.com/drive/v3/files/${id}?alt=media&key=${CONFIG.API_KEY}`;
+  }
+
+  function conTamano(thumbnailLink, tam) {
+    return thumbnailLink.replace(/=s\d+$/, `=s${tam}`);
+  }
+
+  function urlDescarga(foto) {
+    // Fotos de Drive: contenido original vía la API (funciona tanto para
+    // navegar directamente como para el fetch() del ZIP, con CORS habilitado).
+    // Fotos de ejemplo (sin id de Drive): se enlaza a la propia imagen.
+    return foto.id ? urlOriginal(foto.id) : foto.full;
+  }
+
+  function nombreUnico(nombre, i, usados) {
+    if (!usados.has(nombre)) { usados.add(nombre); return nombre; }
+    const punto = nombre.lastIndexOf('.');
+    const alternativo = punto === -1
+      ? `${nombre} (${i + 1})`
+      : `${nombre.slice(0, punto)} (${i + 1})${nombre.slice(punto)}`;
+    usados.add(alternativo);
+    return alternativo;
+  }
+
+  async function descargarTodas() {
+    if (fotos.length === 0) return;
+    const btn = document.getElementById('btnDescargarTodas');
+    const textoOriginal = btn.textContent;
+    btn.disabled = true;
+
+    const zip = new JSZip();
+    const usados = new Set();
+    const fallidas = [];
+    let completadas = 0;
+
+    async function descargarUna(i) {
+      const foto = fotos[i];
+      try {
+        const res = await fetch(urlDescarga(foto));
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        zip.file(nombreUnico(foto.name, i, usados), await res.blob());
+      } catch (err) {
+        fallidas.push(foto.name);
+      }
+      completadas++;
+      btn.textContent = `Descargando ${completadas} / ${fotos.length}...`;
+    }
+
+    // Descarga varias fotos en paralelo (en vez de una a una) para
+    // aprovechar mejor el ancho de banda con carpetas grandes.
+    const CONCURRENCIA = 6;
+    const cola = fotos.map((_, i) => i);
+    async function trabajador() {
+      while (cola.length > 0) {
+        await descargarUna(cola.shift());
+      }
+    }
+    await Promise.all(Array.from({ length: CONCURRENCIA }, trabajador));
+
+    if (Object.keys(zip.files).length === 0) {
+      alert('No se pudo descargar ninguna foto para el ZIP.');
+      btn.disabled = false;
+      btn.textContent = textoOriginal;
+      return;
+    }
+
+    btn.textContent = 'Generando ZIP...';
+    // Las fotos (JPG) ya vienen comprimidas: STORE evita perder tiempo
+    // re-comprimiéndolas sin ganar espacio.
+    const zipBlob = await zip.generateAsync({ type: 'blob', compression: 'STORE' });
+
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(zipBlob);
+    a.download = 'Nerva - fotos.zip';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(a.href);
+
+    btn.disabled = false;
+    btn.textContent = textoOriginal;
+
+    if (fallidas.length > 0) {
+      alert(`No se pudieron incluir en el ZIP: ${fallidas.join(', ')}`);
+    }
+  }
+
+  async function cargarFotos() {
+    const stateMsg    = document.getElementById('stateMsg');
+    const carousel    = document.getElementById('carousel');
+    const demoNotice  = document.getElementById('demoNotice');
+
+    stateMsg.style.display = 'block';
+    stateMsg.classList.remove('error');
+    stateMsg.innerHTML = '<div class="spinner"></div>Cargando fotos...';
+    carousel.style.display = 'none';
+    demoNotice.style.display = 'none';
+
+    if (CONFIG.API_KEY === 'TU_API_KEY_AQUI' || CONFIG.FOLDER_ID === 'TU_FOLDER_ID_AQUI') {
+      fotos = FOTOS_DEMO;
+      iniciarCarrusel();
+      stateMsg.style.display = 'none';
+      carousel.style.display = 'block';
+      ajustarLayout();
+      return;
+    }
+
+    const query = `'${CONFIG.FOLDER_ID}' in parents and mimeType contains 'image/' and trashed = false`;
+    const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}` +
+      `&fields=files(id,name,thumbnailLink)&orderBy=name&pageSize=1000&key=${CONFIG.API_KEY}`;
+
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      const archivos = data.files || [];
+
+      if (archivos.length === 0) {
+        stateMsg.style.display = 'block';
+        stateMsg.textContent = 'No se encontraron fotos en la carpeta.';
+        carousel.style.display = 'none';
+        return;
+      }
+
+      fotos = archivos.map(f => ({
+        id: f.id,
+        name: f.name,
+        thumb: conTamano(f.thumbnailLink, 300),
+        full: conTamano(f.thumbnailLink, 1600),
+      }));
+
+      iniciarCarrusel();
+      stateMsg.style.display = 'none';
+      carousel.style.display = 'block';
+      ajustarLayout();
+    } catch (err) {
+      stateMsg.classList.add('error');
+      stateMsg.textContent = 'No se pudieron cargar las fotos: ' + err.message;
+    }
+  }
+
+  // ── Ajusta el alto del carrusel al espacio libre real (en cualquier
+  //    tamaño de pantalla), para que quepa todo (flechas, miniaturas,
+  //    descargas) sin tener que desplazar la página.
+  function ajustarLayout() {
+    const viewport = document.querySelector('.carousel-viewport');
+    const carousel = document.querySelector('.carousel');
+    if (!viewport || !carousel) return;
+
+    // Alto "natural" (vacío) para medir bien a los hermanos.
+    viewport.style.height = '';
+
+    const otros = Array.from(carousel.children).filter(el => el !== viewport);
+    const alturaOtros = otros.reduce((suma, el) => {
+      const estilo = getComputedStyle(el);
+      return suma + el.offsetHeight + parseFloat(estilo.marginTop) + parseFloat(estilo.marginBottom);
+    }, 0);
+
+    const topCarousel = carousel.getBoundingClientRect().top;
+    const margenInferior = parseFloat(getComputedStyle(document.body).paddingBottom) || 16;
+    const disponible = window.innerHeight - topCarousel - alturaOtros - margenInferior;
+
+    viewport.style.height = Math.max(180, disponible) + 'px';
+    document.body.style.overflow = 'hidden';
+  }
+
+  window.addEventListener('resize', ajustarLayout);
+
+  // ── Carrusel ──────────────────────────────────────────────────────────
+  function iniciarCarrusel() {
+    const track = document.getElementById('carouselTrack');
+    track.innerHTML = '';
+
+    fotos.forEach((foto, i) => {
+      const slide = document.createElement('div');
+      slide.className = 'carousel-slide';
+      slide.onclick = () => { if (!huboDeslizamiento) abrirLightbox(i); };
+      const bg = document.createElement('img');
+      bg.className = 'carousel-slide-bg';
+      bg.dataset.src = foto.full;
+      bg.alt = '';
+      slide.appendChild(bg);
+      const img = document.createElement('img');
+      img.className = 'carousel-slide-photo';
+      img.dataset.src = foto.full;
+      img.alt = foto.name;
+      slide.appendChild(img);
+      track.appendChild(slide);
+    });
+
+    const guardado = leerIndiceGuardado();
+    carouselIndex = (guardado >= 0 && guardado < fotos.length) ? guardado : 0;
+    thumbWindowStart = 0;
+    renderThumbs();
+    actualizarCarrusel();
+
+    const viewport = document.querySelector('.carousel-viewport');
+
+    let touchStartX = 0, touchStartY = 0, touchDeltaX = 0;
+    viewport.ontouchstart = e => {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+      touchDeltaX = 0;
+      huboDeslizamiento = false;
+    };
+    viewport.ontouchmove = e => {
+      const dx = e.touches[0].clientX - touchStartX;
+      const dy = e.touches[0].clientY - touchStartY;
+      if (Math.abs(dx) > Math.abs(dy)) huboDeslizamiento = true;
+      touchDeltaX = dx;
+    };
+    viewport.ontouchend = () => {
+      if (huboDeslizamiento && Math.abs(touchDeltaX) > 40) {
+        moverCarrusel(touchDeltaX < 0 ? 1 : -1);
+      }
+      setTimeout(() => { huboDeslizamiento = false; }, 300);
+    };
+  }
+
+  function moverCarrusel(dir) {
+    irASlide((carouselIndex + dir + fotos.length) % fotos.length);
+  }
+
+  function irASlide(i) {
+    carouselIndex = i;
+    actualizarCarrusel();
+  }
+
+  function irAFotoInput() {
+    const input = document.getElementById('gotoInput');
+    const n = parseInt(input.value, 10);
+    if (!n || n < 1 || n > fotos.length) {
+      input.focus();
+      return;
+    }
+    irASlide(n - 1);
+    input.value = '';
+  }
+
+  function renderThumbs() {
+    const thumbs = document.getElementById('carouselThumbs');
+    thumbs.innerHTML = '';
+
+    const fin = Math.min(thumbWindowStart + THUMBS_POR_PAGINA, fotos.length);
+    for (let i = thumbWindowStart; i < fin; i++) {
+      const foto = fotos[i];
+      const thumb = document.createElement('div');
+      thumb.className = 'carousel-thumb';
+      thumb.onclick = () => irASlide(i);
+      const thumbImg = document.createElement('img');
+      thumbImg.src = foto.thumb;
+      thumbImg.loading = 'lazy';
+      thumbImg.alt = foto.name;
+      thumb.appendChild(thumbImg);
+      thumbs.appendChild(thumb);
+    }
+  }
+
+  // Solo carga en el DOM la foto grande actual y sus vecinas inmediatas,
+  // sin depender de loading="lazy" (cuyo margen de precarga varía según
+  // el tamaño de pantalla y con 500+ fotos puede disparar muchas
+  // descargas pesadas a la vez en monitores grandes).
+  function cargarSlidesCercanos() {
+    const MARGEN = 1;
+    const desde = Math.max(0, carouselIndex - MARGEN);
+    const hasta = Math.min(fotos.length - 1, carouselIndex + MARGEN);
+    const slides = document.querySelectorAll('.carousel-slide');
+
+    for (let i = desde; i <= hasta; i++) {
+      const slide = slides[i];
+      if (!slide) continue;
+      slide.querySelectorAll('img[data-src]').forEach(img => {
+        img.src = img.dataset.src;
+        img.removeAttribute('data-src');
+      });
+    }
+  }
+
+  function actualizarCarrusel() {
+    document.getElementById('carouselTrack').style.transform = `translateX(-${carouselIndex * 100}%)`;
+    cargarSlidesCercanos();
+    guardarIndiceActual();
+
+    const paginaActual = Math.floor(carouselIndex / THUMBS_POR_PAGINA) * THUMBS_POR_PAGINA;
+    if (paginaActual !== thumbWindowStart) {
+      thumbWindowStart = paginaActual;
+      renderThumbs();
+    }
+
+    document.querySelectorAll('.carousel-thumb').forEach((t, i) =>
+      t.classList.toggle('active', thumbWindowStart + i === carouselIndex));
+
+    const activeThumb = document.querySelectorAll('.carousel-thumb')[carouselIndex - thumbWindowStart];
+    if (activeThumb) activeThumb.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+
+    const foto = fotos[carouselIndex];
+    document.getElementById('carouselCaption').textContent =
+      `${carouselIndex + 1} / ${fotos.length}`;
+
+    const downloadBtn = document.getElementById('carouselDownload');
+    downloadBtn.href = urlDescarga(foto);
+    downloadBtn.setAttribute('download', foto.name);
+  }
+
+  // ── Lightbox ──────────────────────────────────────────────────────────
+  function abrirLightbox(i) {
+    lightboxIndex = i;
+    mostrarLightbox();
+    document.getElementById('lightbox').classList.add('open');
+  }
+
+  function mostrarLightbox() {
+    const foto = fotos[lightboxIndex];
+    document.getElementById('lightboxImg').src = foto.full;
+    document.getElementById('lightboxCaption').textContent =
+      `${lightboxIndex + 1} / ${fotos.length}`;
+    document.getElementById('lightbox').classList.remove('zoomed');
+
+    const downloadBtn = document.getElementById('lightboxDownload');
+    downloadBtn.href = urlDescarga(foto);
+    downloadBtn.setAttribute('download', foto.name);
+  }
+
+  function toggleZoom() {
+    document.getElementById('lightbox').classList.toggle('zoomed');
+  }
+
+  function moverLightbox(dir) {
+    lightboxIndex = (lightboxIndex + dir + fotos.length) % fotos.length;
+    mostrarLightbox();
+  }
+
+  function cerrarLightbox() {
+    document.getElementById('lightbox').classList.remove('open');
+    document.getElementById('lightbox').classList.remove('zoomed');
+  }
+
+  document.addEventListener('keydown', e => {
+    if (document.getElementById('lightbox').classList.contains('open')) {
+      if (e.key === 'Escape') cerrarLightbox();
+      if (e.key === 'ArrowLeft') moverLightbox(-1);
+      if (e.key === 'ArrowRight') moverLightbox(1);
+      return;
+    }
+    if (e.key === 'ArrowLeft') moverCarrusel(-1);
+    if (e.key === 'ArrowRight') moverCarrusel(1);
+  });
+
+  cargarFotos();
+</script>
+</body>
+</html>
