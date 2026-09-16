@@ -94,17 +94,12 @@
 
     .carousel-goto-select {
       all: unset;
-      box-sizing: border-box;
-      display: inline-block;
-      margin-top: 4px;
-      max-width: 220px;
-      padding: 6px 10px;
-      background: rgba(0,0,0,0.55);
-      border: 1px solid rgba(255,255,255,0.35);
-      border-radius: 8px;
-      color: #ffffff;
-      font-size: 0.8rem;
       cursor: pointer;
+      color: #ffffff;
+      font-size: 0.85rem;
+      font-weight: 700;
+      border-bottom: 1px dashed rgba(255,255,255,0.6);
+      padding: 0 1px;
     }
 
     /* ── Aviso demo ── */
@@ -369,8 +364,8 @@
         <div class="carousel-viewport">
           <div class="carousel-track" id="carouselTrack"></div>
           <div class="carousel-caption" id="carouselCaption">
-            <div id="carouselCaptionText"></div>
             <select class="carousel-goto-select" id="carouselGotoSelect" onchange="irASlide(parseInt(this.value, 10))"></select>
+            / <span id="carouselCaptionTotal"></span>
           </div>
         </div>
         <div class="carousel-actions">
@@ -651,9 +646,10 @@
     fotos.forEach((foto, i) => {
       const opt = document.createElement('option');
       opt.value = i;
-      opt.textContent = `${i + 1}. ${foto.name}`;
+      opt.textContent = `${i + 1}`;
       select.appendChild(opt);
     });
+    document.getElementById('carouselCaptionTotal').textContent = fotos.length;
 
     const guardado = leerIndiceGuardado();
     carouselIndex = (guardado >= 0 && guardado < fotos.length) ? guardado : 0;
@@ -750,8 +746,6 @@
     if (activeThumb) activeThumb.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
 
     const foto = fotos[carouselIndex];
-    document.getElementById('carouselCaptionText').textContent =
-      `${carouselIndex + 1} / ${fotos.length}`;
     document.getElementById('carouselGotoSelect').value = carouselIndex;
 
     const downloadBtn = document.getElementById('carouselDownload');
