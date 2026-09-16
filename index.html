@@ -92,25 +92,20 @@
     }
     .btn-refresh:hover { background: rgba(255,255,255,0.15); }
 
-    .goto-form {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .goto-form input {
+    .carousel-goto-select {
       all: unset;
       box-sizing: border-box;
-      width: 80px;
-      padding: 8px 10px;
-      background: rgba(0,0,0,0.45);
+      display: inline-block;
+      margin-top: 4px;
+      max-width: 220px;
+      padding: 6px 10px;
+      background: rgba(0,0,0,0.55);
       border: 1px solid rgba(255,255,255,0.35);
       border-radius: 8px;
       color: #ffffff;
-      font-size: 0.85rem;
-      text-align: center;
+      font-size: 0.8rem;
+      cursor: pointer;
     }
-    .goto-form input::placeholder { color: rgba(255,255,255,0.45); }
 
     /* ── Aviso demo ── */
     .demo-notice {
@@ -356,10 +351,6 @@
   <div class="card">
     <div class="toolbar">
       <h2>&#128247; Fotos</h2>
-      <div class="goto-form">
-        <input type="number" id="gotoInput" min="1" placeholder="Nº foto" onkeydown="if (event.key === 'Enter') irAFotoInput()" />
-        <button class="btn-refresh" onclick="irAFotoInput()">Ir</button>
-      </div>
       <button class="btn-refresh" onclick="cargarFotos()">&#8635; Actualizar</button>
     </div>
 
@@ -377,7 +368,10 @@
       <div class="carousel" id="carousel" style="display:none">
         <div class="carousel-viewport">
           <div class="carousel-track" id="carouselTrack"></div>
-          <div class="carousel-caption" id="carouselCaption"></div>
+          <div class="carousel-caption" id="carouselCaption">
+            <div id="carouselCaptionText"></div>
+            <select class="carousel-goto-select" id="carouselGotoSelect" onchange="irASlide(parseInt(this.value, 10))"></select>
+          </div>
         </div>
         <div class="carousel-actions">
           <button class="carousel-arrow prev" onclick="moverCarrusel(-1)">&#8592;</button>
@@ -652,6 +646,15 @@
       track.appendChild(slide);
     });
 
+    const select = document.getElementById('carouselGotoSelect');
+    select.innerHTML = '';
+    fotos.forEach((foto, i) => {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = `${i + 1}. ${foto.name}`;
+      select.appendChild(opt);
+    });
+
     const guardado = leerIndiceGuardado();
     carouselIndex = (guardado >= 0 && guardado < fotos.length) ? guardado : 0;
     thumbWindowStart = 0;
@@ -688,17 +691,6 @@
   function irASlide(i) {
     carouselIndex = i;
     actualizarCarrusel();
-  }
-
-  function irAFotoInput() {
-    const input = document.getElementById('gotoInput');
-    const n = parseInt(input.value, 10);
-    if (!n || n < 1 || n > fotos.length) {
-      input.focus();
-      return;
-    }
-    irASlide(n - 1);
-    input.value = '';
   }
 
   function renderThumbs() {
@@ -758,8 +750,9 @@
     if (activeThumb) activeThumb.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
 
     const foto = fotos[carouselIndex];
-    document.getElementById('carouselCaption').textContent =
+    document.getElementById('carouselCaptionText').textContent =
       `${carouselIndex + 1} / ${fotos.length}`;
+    document.getElementById('carouselGotoSelect').value = carouselIndex;
 
     const downloadBtn = document.getElementById('carouselDownload');
     downloadBtn.href = urlDescarga(foto);
