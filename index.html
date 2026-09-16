@@ -380,6 +380,12 @@
 
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script>
+  // El navegador puede restaurar el scroll de la visita anterior al recargar;
+  // como el body pasa a overflow:hidden, eso dejaría el logo cortado y sin
+  // forma de volver arriba. Forzamos que cada carga empiece en la parte alta.
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  window.scrollTo(0, 0);
+
   // ── Configuración ──────────────────────────────────────────────────────
   // 1. Crea una API key en https://console.cloud.google.com/apis/credentials
   //    (habilita "Google Drive API" en el proyecto) y restríngela a ese dominio.
@@ -601,6 +607,7 @@
 
     viewport.style.height = Math.max(180, disponible) + 'px';
     document.body.style.overflow = 'hidden';
+    window.scrollTo(0, 0);
   }
 
   window.addEventListener('resize', ajustarLayout);
