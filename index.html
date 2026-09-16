@@ -94,13 +94,19 @@
 
     .carousel-goto-select {
       all: unset;
+      box-sizing: border-box;
+      display: inline-block;
       cursor: pointer;
       color: #ffffff;
       font-size: 0.85rem;
       font-weight: 700;
-      border-bottom: 1px dashed rgba(255,255,255,0.6);
-      padding: 0 1px;
+      padding: 4px 10px;
+      background: rgba(0,0,0,0.45);
+      border: 1px solid rgba(255,255,255,0.35);
+      border-radius: 6px;
+      transition: background 0.15s;
     }
+    .carousel-goto-select:hover { background: rgba(255,255,255,0.15); }
 
     /* ── Aviso demo ── */
     .demo-notice {
